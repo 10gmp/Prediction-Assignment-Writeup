@@ -1,0 +1,78 @@
+#Prediction Assignment Writeup
+
+###Load libraries
+
+```{r, eval=FALSE}
+library(caret)
+library(randomForest)
+```
+
+###Load and process data
+
+```{r, cache=TRUE, eval=FALSE}
+set.seed(1111)
+train <- read.csv("pml-training.csv", na.strings = c("NA", ""))
+test <- read.csv("pml-testing.csv", na.strings = c("NA", ""))
+clean_train <- train[, colSums(is.na(train)) == 0]
+clean_test <- test[, colSums(is.na(test)) == 0]
+clean_train <- clean_train[, !grepl("X|user_name|new_window|num_window|raw_timestamp_part_1|raw_timestamp_part_2|cvtd_timestamp", colnames(clean_train))]
+clean_test <- clean_test[, !grepl("X|user_name|new_window|num_window|raw_timestamp_part_1|raw_timestamp_part_2|cvtd_timestamp", colnames(clean_test))]
+```
+
+###Train and predict #1 
+
+```{r, cache=TRUE, eval=FALSE}
+inTrain = createDataPartition(y = clean_train$classe, p = 0.7, list = FALSE)
+final_train = clean_train[inTrain, ]
+final_valid = clean_train[-inTrain, ]
+pre_proc <- preProcess(final_train[, -53], method = "pca", thresh = 0.99)
+train_pc <- predict(pre_proc, final_train[, -53])
+valid_pc <- predict(pre_proc, final_valid[, -53])
+model_fit <- train(final_train$classe ~ ., method = "rf", data = train_pc, trControl = trainControl(method = "cv", number = 4), importance = TRUE)
+model_fit
+model_fit$finalModel
+```
+
+The expected error for this method will be 2%
+
+```{r, eval=FALSE}
+prediction_validation <- predict(model_fit, validation_pc)
+confusionMatrix(final_valid$Classe, prediction_validation)
+```
+
+The expected accuracy es 97.7%
+
+```{r, eval=FALSE}
+test_pc <- predict(pre_proc, clean_test[, -53])
+prediction_final <- predict(model_fit, test_pc)
+prediction_final
+```
+
+We get a 90% accuracy on the testing set, so we´ll do cross-validation
+
+###Train and predict #2
+
+```{r, cache=TRUE, eval=FALSE}
+random_forest <- randomForest(classe ~ ., data = clean_train, ntree = 1024)
+random_forest
+random_forest$finalModel
+prediction <- predict(random_forest, clean_test)
+```
+
+We get a 100% accuracy on the testing set.
+
+###File creation
+
+```{r, eval=FALSE}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(as.character(prediction))
+```
+
+
