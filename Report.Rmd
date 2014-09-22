@@ -2,14 +2,14 @@
 
 ###Load libraries
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 library(caret)
 library(randomForest)
 ```
 
 ###Load and process data
 
-```{r, cache=TRUE, eval=FALSE}
+```{r, cache=TRUE, eval=TRUE}
 set.seed(1111)
 train <- read.csv("pml-training.csv", na.strings = c("NA", ""))
 test <- read.csv("pml-testing.csv", na.strings = c("NA", ""))
@@ -21,7 +21,7 @@ clean_test <- clean_test[, !grepl("X|user_name|new_window|num_window|raw_timesta
 
 ###Train and predict #1 
 
-```{r, cache=TRUE, eval=FALSE}
+```{r, cache=TRUE, eval=TRUE}
 inTrain = createDataPartition(y = clean_train$classe, p = 0.7, list = FALSE)
 final_train = clean_train[inTrain, ]
 final_valid = clean_train[-inTrain, ]
@@ -35,31 +35,20 @@ model_fit$finalModel
 
 The expected error for this method will be 2%
 
-```{r, eval=FALSE}
-prediction_validation <- predict(model_fit, validation_pc)
-confusionMatrix(final_valid$Classe, prediction_validation)
-```
-
-The expected accuracy es 97.7%
-
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 test_pc <- predict(pre_proc, clean_test[, -53])
 prediction_final <- predict(model_fit, test_pc)
 prediction_final
 ```
 
-We get a 90% accuracy on the testing set, so we´ll do cross-validation
-
 ###Train and predict #2
 
-```{r, cache=TRUE, eval=FALSE}
+```{r, cache=TRUE, eval=TRUE}
 random_forest <- randomForest(classe ~ ., data = clean_train, ntree = 1024)
 random_forest
-random_forest$finalModel
 prediction <- predict(random_forest, clean_test)
+prediction
 ```
-
-We get a 100% accuracy on the testing set.
 
 ###File creation
 

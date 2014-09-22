@@ -56,8 +56,12 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <h1>Prediction Assignment Writeup</h1>
 <div id="load-libraries" class="section level3">
 <h3>Load libraries</h3>
-<pre class="r"><code>library(caret)
-library(randomForest)</code></pre>
+<pre class="r"><code>library(caret)</code></pre>
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 </div>
 <div id="load-and-process-data" class="section level3">
 <h3>Load and process data</h3>
@@ -78,24 +82,74 @@ pre_proc &lt;- preProcess(final_train[, -53], method = &quot;pca&quot;, thresh =
 train_pc &lt;- predict(pre_proc, final_train[, -53])
 valid_pc &lt;- predict(pre_proc, final_valid[, -53])
 model_fit &lt;- train(final_train$classe ~ ., method = &quot;rf&quot;, data = train_pc, trControl = trainControl(method = &quot;cv&quot;, number = 4), importance = TRUE)
-model_fit
-model_fit$finalModel</code></pre>
+model_fit</code></pre>
+<pre><code>## Random Forest 
+## 
+## 13737 samples
+##    35 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 10302, 10303, 10303, 10303 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
+##    2    1         1.0    0.002        0.003   
+##   19    1         1.0    0.006        0.008   
+##   36    1         0.9    0.007        0.009   
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 2.</code></pre>
+<pre class="r"><code>model_fit$finalModel</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(x = x, y = y, mtry = param$mtry, importance = TRUE) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 2.05%
+## Confusion matrix:
+##      A    B    C    D    E class.error
+## A 3895    7    1    2    1    0.002816
+## B   43 2588   25    1    1    0.026336
+## C    2   38 2342   13    1    0.022538
+## D    5    0   98 2143    6    0.048401
+## E    0    9   18   11 2487    0.015050</code></pre>
 <p>The expected error for this method will be 2%</p>
-<pre class="r"><code>prediction_validation &lt;- predict(model_fit, validation_pc)
-confusionMatrix(final_valid$Classe, prediction_validation)</code></pre>
-<p>The expected accuracy es 97.7%</p>
 <pre class="r"><code>test_pc &lt;- predict(pre_proc, clean_test[, -53])
 prediction_final &lt;- predict(model_fit, test_pc)
 prediction_final</code></pre>
-<p>We get a 90% accuracy on the testing set, so we´ll do cross-validation</p>
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
 </div>
 <div id="train-and-predict-2" class="section level3">
 <h3>Train and predict #2</h3>
 <pre class="r"><code>random_forest &lt;- randomForest(classe ~ ., data = clean_train, ntree = 1024)
-random_forest
-random_forest$finalModel
-prediction &lt;- predict(random_forest, clean_test)</code></pre>
-<p>We get a 100% accuracy on the testing set.</p>
+random_forest</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(formula = classe ~ ., data = clean_train, ntree = 1024) 
+##                Type of random forest: classification
+##                      Number of trees: 1024
+## No. of variables tried at each split: 7
+## 
+##         OOB estimate of  error rate: 0.29%
+## Confusion matrix:
+##      A    B    C    D    E class.error
+## A 5578    1    0    0    1   0.0003584
+## B   11 3783    3    0    0   0.0036871
+## C    0   12 3409    1    0   0.0037989
+## D    0    0   20 3194    2   0.0068408
+## E    0    0    2    4 3601   0.0016634</code></pre>
+<pre class="r"><code>prediction &lt;- predict(random_forest, clean_test)
+prediction</code></pre>
+<pre><code>##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+## Levels: A B C D E</code></pre>
 </div>
 <div id="file-creation" class="section level3">
 <h3>File creation</h3>
